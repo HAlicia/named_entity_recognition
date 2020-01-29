@@ -20,20 +20,20 @@ class BiLSTM(nn.Module):
         self.lin = nn.Linear(2*hidden_size, out_size)
 
     def forward(self, sents_tensor, lengths):
-        emb = self.embedding(sents_tensor)  # [B, L, emb_size]
+        emb = self.embedding(sents_tensor)  # [Batch_size, max_len, emb_size]
 
         packed = pack_padded_sequence(emb, lengths, batch_first=True)
         rnn_out, _ = self.bilstm(packed)
-        # rnn_out:[B, L, hidden_size*2]
+        # rnn_out:[Batch_size, max_len, hidden_size*2]
         rnn_out, _ = pad_packed_sequence(rnn_out, batch_first=True)
 
-        scores = self.lin(rnn_out)  # [B, L, out_size]
+        scores = self.lin(rnn_out)  # [Batch_size, max_len, out_size]
 
         return scores
 
     def test(self, sents_tensor, lengths, _):
         """第三个参数不会用到，加它是为了与BiLSTM_CRF保持同样的接口"""
-        logits = self.forward(sents_tensor, lengths)  # [B, L, out_size]
+        logits = self.forward(sents_tensor, lengths)  # [Batch_size, max_len, out_size]
         _, batch_tagids = torch.max(logits, dim=2)
 
         return batch_tagids

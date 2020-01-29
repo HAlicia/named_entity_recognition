@@ -18,9 +18,10 @@ class HMM(object):
         self.Pi = torch.zeros(N)
 
     def train(self, word_lists, tag_lists, word2id, tag2id):
-        """HMM的训练，即根据训练语料对模型参数进行估计,
+        """HMM的训练（有监督），即根据训练语料对模型参数进行估计,
            因为我们有观测序列以及其对应的状态序列，所以我们
-           可以使用极大似然估计的方法来估计隐马尔可夫模型的参数
+           可以使用【极大似然估计】的方法来估计隐马尔可夫模型的参数
+           注：无监督可以使用【EM算法】
         参数:
             word_lists: 列表，其中每个元素由字组成的列表，如 ['担','任','科','员']
             tag_lists: 列表，其中每个元素是由对应的标注组成的列表，如 ['O','O','B-TITLE', 'E-TITLE']
@@ -30,7 +31,7 @@ class HMM(object):
 
         assert len(tag_lists) == len(word_lists)
 
-        # 估计转移概率矩阵
+        # 估计状态转移概率矩阵A=[N*N]
         for tag_list in tag_lists:
             seq_len = len(tag_list)
             for i in range(seq_len - 1):
@@ -40,9 +41,9 @@ class HMM(object):
         # 问题：如果某元素没有出现过，该位置为0，这在后续的计算中是不允许的
         # 解决方法：我们将等于0的概率加上很小的数
         self.A[self.A == 0.] = 1e-10
-        self.A = self.A / self.A.sum(dim=1, keepdim=True)
+        self.A = self.A / self.A.sum(dim=1, keepdim=True)  # 归一化
 
-        # 估计观测概率矩阵
+        # 估计观测概率矩阵B=[N*M]
         for tag_list, word_list in zip(tag_lists, word_lists):
             assert len(tag_list) == len(word_list)
             for tag, word in zip(tag_list, word_list):
@@ -52,7 +53,7 @@ class HMM(object):
         self.B[self.B == 0.] = 1e-10
         self.B = self.B / self.B.sum(dim=1, keepdim=True)
 
-        # 估计初始状态概率
+        # 估计初始状态概率Pi=[N]
         for tag_list in tag_lists:
             init_tagid = tag2id[tag_list[0]]
             self.Pi[init_tagid] += 1
@@ -68,7 +69,7 @@ class HMM(object):
 
     def decoding(self, word_list, word2id, tag2id):
         """
-        使用维特比算法对给定观测序列求状态序列， 这里就是对字组成的序列,求其对应的标注。
+        使用【维特比算法】对给定观测序列求状态序列， 这里就是对字组成的序列,求其对应的标注。
         维特比算法实际是用动态规划解隐马尔可夫模型预测问题，即用动态规划求概率最大路径（最优路径）
         这时一条路径对应着一个状态序列
         """

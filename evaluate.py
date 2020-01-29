@@ -19,7 +19,7 @@ def hmm_train_eval(train_data, test_data, word2id, tag2id, remove_O=False):
                     train_tag_lists,
                     word2id,
                     tag2id)
-    save_model(hmm_model, "./ckpts/hmm.pkl")
+    save_model(hmm_model, "./ckpts/hmm2.pkl")
 
     # 评估hmm模型
     pred_tag_lists = hmm_model.test(test_word_lists,
@@ -66,7 +66,7 @@ def bilstm_train_and_eval(train_data, dev_data, test_data,
                        dev_word_lists, dev_tag_lists, word2id, tag2id)
 
     model_name = "bilstm_crf" if crf else "bilstm"
-    save_model(bilstm_model, "./ckpts/"+model_name+".pkl")
+    save_model(bilstm_model, "./ckpts/"+model_name+"2.pkl")
 
     print("训练完毕,共用时{}秒.".format(int(time.time()-start)))
     print("评估{}模型中...".format(model_name))
